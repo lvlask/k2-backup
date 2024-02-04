@@ -81,12 +81,12 @@ done
 
 if [[ "$crontabs" == "y" ]]; then
 # remove cronjobs
-sudo crontab -l | grep -vE '/root/ac-backup.+\.sh' | crontab -
+sudo crontab -l | grep -vE '/root/k2-backup.+\.sh' | crontab -
 fi
 
 
 # m backup
-# ساخت فایل پشتیبانی برای نرم‌افزار Marzban و ذخیره آن در فایل ac-backup.zip
+# ساخت فایل پشتیبانی برای نرم‌افزار Marzban و ذخیره آن در فایل k2-backup.zip
 if [[ "$xmh" == "m" ]]; then
 
 if dir=$(find /opt /root -type d -iname "marzban" -print -quit); then
@@ -103,7 +103,7 @@ if [ -d "/var/lib/marzban/mysql" ]; then
   docker exec marzban-mysql-1 bash -c "mkdir -p /var/lib/mysql/db-backup"
   source /opt/marzban/.env
 
-    cat > "/var/lib/marzban/mysql/ac-backup.sh" <<EOL
+    cat > "/var/lib/marzban/mysql/k2-backup.sh" <<EOL
 #!/bin/bash
 
 USER="root"
@@ -121,24 +121,24 @@ for db in \$databases; do
 done
 
 EOL
-chmod +x /var/lib/marzban/mysql/ac-backup.sh
+chmod +x /var/lib/marzban/mysql/k2-backup.sh
 
 ZIP=$(cat <<EOF
-docker exec marzban-mysql-1 bash -c "/var/lib/mysql/ac-backup.sh"
-zip -r /root/ac-backup-m.zip /opt/marzban/* /var/lib/marzban/* /opt/marzban/.env -x /var/lib/marzban/mysql/\*
-zip -r /root/ac-backup-m.zip /var/lib/marzban/mysql/db-backup/*
+docker exec marzban-mysql-1 bash -c "/var/lib/mysql/k2-backup.sh"
+zip -r /root/k2-backup-m.zip /opt/marzban/* /var/lib/marzban/* /opt/marzban/.env -x /var/lib/marzban/mysql/\*
+zip -r /root/k2-backup-m.zip /var/lib/marzban/mysql/db-backup/*
 rm -rf /var/lib/marzban/mysql/db-backup/*
 EOF
 )
 
     else
-      ZIP="zip -r /root/ac-backup-m.zip ${dir}/* /var/lib/marzban/* /opt/marzban/.env"
+      ZIP="zip -r /root/k2-backup-m.zip ${dir}/* /var/lib/marzban/* /opt/marzban/.env"
 fi
 
 ACLover="marzban backup"
 
 # x-ui backup
-# ساخت فایل پشتیبانی برای نرم‌افزار X-UI و ذخیره آن در فایل ac-backup.zip
+# ساخت فایل پشتیبانی برای نرم‌افزار X-UI و ذخیره آن در فایل k2-backup.zip
 elif [[ "$xmh" == "x" ]]; then
 
 if dbDir=$(find /etc /opt/freedom -type d -iname "x-ui*" -print -quit); then
@@ -158,11 +158,11 @@ else
   exit 1
 fi
 
-ZIP="zip /root/ac-backup-x.zip ${dbDir}/x-ui.db ${configDir}/config.json"
+ZIP="zip /root/k2-backup-x.zip ${dbDir}/x-ui.db ${configDir}/config.json"
 ACLover="x-ui backup"
 
 # hiddify backup
-# ساخت فایل پشتیبانی برای نرم‌افزار Hiddify و ذخیره آن در فایل ac-backup.zip
+# ساخت فایل پشتیبانی برای نرم‌افزار Hiddify و ذخیره آن در فایل k2-backup.zip
 elif [[ "$xmh" == "h" ]]; then
 
 if ! find /opt/hiddify-config/hiddify-panel/ -type d -iname "backup" -print -quit; then
@@ -178,8 +178,8 @@ fi
 python3 -m hiddifypanel backup
 cd /opt/hiddify-config/hiddify-panel/backup
 latest_file=\$(ls -t *.json | head -n1)
-rm -f /root/ac-backup-h.zip
-zip /root/ac-backup-h.zip /opt/hiddify-config/hiddify-panel/backup/\$latest_file
+rm -f /root/k2-backup-h.zip
+zip /root/k2-backup-h.zip /opt/hiddify-config/hiddify-panel/backup/\$latest_file
 
 EOF
 )
@@ -201,7 +201,7 @@ trim() {
 }
 
 IP=$(ip route get 1 | sed -n 's/^.*src \([0-9.]*\) .*$/\1/p')
-caption="${caption}\n\n${ACLover}\n<code>${IP}</code>\nCreated by @AC_Lover - https://github.com/AC-Lover/backup"
+caption="${caption}\n\n${ACLover}\n<code>${IP}</code>\nK2ray Services - https://k2ray.t.me"
 comment=$(echo -e "$caption" | sed 's/<code>//g;s/<\/code>//g')
 comment=$(trim "$comment")
 
@@ -211,21 +211,21 @@ sudo apt install zip -y
 
 # send backup to telegram
 # ارسال فایل پشتیبانی به تلگرام
-cat > "/root/ac-backup-${xmh}.sh" <<EOL
-rm -rf /root/ac-backup-${xmh}.zip
+cat > "/root/k2-backup-${xmh}.sh" <<EOL
+rm -rf /root/k2-backup-${xmh}.zip
 $ZIP
-echo -e "$comment" | zip -z /root/ac-backup-${xmh}.zip
-curl -F chat_id="${chatid}" -F caption=\$'${caption}' -F parse_mode="HTML" -F document=@"/root/ac-backup-${xmh}.zip" https://api.telegram.org/bot${tk}/sendDocument
+echo -e "$comment" | zip -z /root/k2-backup-${xmh}.zip
+curl -F chat_id="${chatid}" -F caption=\$'${caption}' -F parse_mode="HTML" -F document=@"/root/k2-backup-${xmh}.zip" https://api.telegram.org/bot${tk}/sendDocument
 EOL
 
 
 # Add cronjob
 # افزودن کرانجاب جدید برای اجرای دوره‌ای این اسکریپت
-{ crontab -l -u root; echo "${cron_time} /bin/bash /root/ac-backup-${xmh}.sh >/dev/null 2>&1"; } | crontab -u root -
+{ crontab -l -u root; echo "${cron_time} /bin/bash /root/k2-backup-${xmh}.sh >/dev/null 2>&1"; } | crontab -u root -
 
 # run the script
 # اجرای این اسکریپت
-bash "/root/ac-backup-${xmh}.sh"
+bash "/root/k2-backup-${xmh}.sh"
 
 # Done
 # پایان اجرای اسکریپت
