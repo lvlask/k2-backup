@@ -33,7 +33,7 @@
 <p align="left">First, you run this command on your server<br><br></p> 
 
 ```bash
-bash <(curl -Ls https://github.com/lvlask/backup/raw/main/backup.sh)
+bash <(curl -Ls https://github.com/lvlask/k2-backup/raw/main/backup.sh)
 ``` 
 
 ###
